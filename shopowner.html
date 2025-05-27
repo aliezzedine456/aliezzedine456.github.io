@@ -1,0 +1,2022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shop Admin Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #002f34;
+            --secondary-color: #23e5db;
+            --accent-color: #ffce32;
+            --light-color: #f2f4f5;
+            --dark-color: #002f34;
+            --success-color: #00a650;
+            --warning-color: #ff6b6b;
+            --bg-color: #f2f4f5;
+            --text-color: #002f34;
+            --card-bg: white;
+            --input-bg: white;
+        }
+
+        /* Dark mode variables */
+        .dark-mode {
+            --primary-color: #23e5db;
+            --secondary-color: #002f34;
+            --accent-color: #ffce32;
+            --light-color: #121212;
+            --dark-color: #f2f4f5;
+            --bg-color: #121212;
+            --text-color: #f2f4f5;
+            --card-bg: #1e1e1e;
+            --input-bg: #2d2d2d;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            transition: background-color 0.3s, color 0.3s;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* Loading screen styles */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--bg-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-logo {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .loading-logo i {
+            margin-right: 10px;
+        }
+
+        .loading-dots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .loading-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            animation: loadingPulse 1.5s infinite ease-in-out;
+        }
+
+        .loading-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes loadingPulse {
+            0%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        /* Admin panel */
+        .admin-panel {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .admin-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .admin-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .admin-section {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .admin-section-title {
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+        }
+
+        .admin-section-title i {
+            margin-right: 10px;
+        }
+
+        /* Admin product list */
+        .admin-product-item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: var(--card-bg);
+            transition: all 0.3s ease;
+        }
+
+        .admin-product-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .admin-product-image {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 15px;
+        }
+
+        .admin-product-info {
+            flex-grow: 1;
+        }
+
+        .admin-product-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Image upload preview */
+        .image-preview-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .image-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .remove-image-btn {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--warning-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            cursor: pointer;
+            border: none;
+        }
+
+        /* Delivery service item */
+        .delivery-service-item {
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: var(--card-bg);
+            transition: all 0.3s ease;
+        }
+
+        .delivery-service-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .delivery-service-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .delivery-service-details p {
+            margin-bottom: 5px;
+        }
+
+        .delivery-service-details strong {
+            color: var(--primary-color);
+        }
+
+        /* Login form */
+        .login-container {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 30px;
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .login-title {
+            text-align: center;
+            margin-bottom: 30px;
+            color: var(--primary-color);
+        }
+
+        /* Loading spinner */
+        .loading-spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Toast notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1100;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .admin-product-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .admin-product-image {
+                margin-bottom: 15px;
+                margin-right: 0;
+            }
+            
+            .admin-product-actions {
+                width: 100%;
+                margin-top: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-logo">
+            <i class="fas fa-store"></i>
+            <span>Loading Admin Panel...</span>
+        </div>
+        <div class="loading-dots">
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+            <div class="loading-dot"></div>
+        </div>
+    </div>
+
+    <!-- Login Form (shown initially) -->
+    <div class="login-container" id="loginForm">
+        <h2 class="login-title"><i class="fas fa-lock"></i> Shop Owner Access</h2>
+        <form id="adminLoginForm">
+            <div class="mb-3">
+                <label for="ownerUsername" class="form-label">Owner Username</label>
+                <input type="text" class="form-control" id="ownerUsername" required>
+            </div>
+            <div class="mb-3">
+                <label for="ownerCode" class="form-label">Owner Access Code</label>
+                <input type="password" class="form-control" id="ownerCode" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">
+                <i class="fas fa-sign-in-alt me-1"></i> Access Shop
+            </button>
+        </form>
+    </div>
+
+    <!-- Admin Panel (hidden initially) -->
+    <div class="admin-panel" id="adminPanel" style="display: none;">
+        <div class="admin-header">
+            <h1 class="admin-title" id="adminTitle">
+                <i class="fas fa-store me-2"></i>
+                <span id="shopNameDisplay">Shop Admin</span>
+            </h1>
+            <button class="btn btn-danger" id="logoutBtn">
+                <i class="fas fa-sign-out-alt me-1"></i> Logout
+            </button>
+        </div>
+
+        <ul class="nav nav-tabs mb-3" id="adminTabs">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#shopSettingsTab">Shop Settings</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#productsTab">Products</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#deliveryTab">Delivery</a>
+            </li>
+        </ul>
+        
+        <div class="tab-content">
+            <!-- Shop Settings Tab -->
+            <div class="tab-pane fade show active" id="shopSettingsTab">
+                <div class="admin-section">
+                    <h6 class="admin-section-title"><i class="fas fa-store"></i> Shop Information</h6>
+                    <form id="shopSettingsForm">
+                        <div class="mb-3">
+                            <label for="shopNameInput" class="form-label">Shop Name</label>
+                            <input type="text" class="form-control" id="shopNameInput" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="shopDescriptionInput" class="form-label">Shop Description</label>
+                            <textarea class="form-control" id="shopDescriptionInput" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="shopPhoneInput" class="form-label">Shop Phone Number</label>
+                            <input type="tel" class="form-control" id="shopPhoneInput">
+                            <div class="form-text">This will be shown on product pages if enabled</div>
+                        </div>
+                        
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="showPhoneToggle">
+                            <label class="form-check-label" for="showPhoneToggle">Show phone number on product pages</label>
+                        </div>
+                        
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="shopPublicToggle" checked>
+                            <label class="form-check-label" for="shopPublicToggle">Make shop public</label>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="adminPasswordInput" class="form-label">Change Access Code</label>
+                            <input type="password" class="form-control" id="adminPasswordInput">
+                            <div class="form-text">Change your shop access code</div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save me-1"></i> Save Shop Information
+                        </button>
+                    </form>
+                </div>
+                
+                <div class="admin-section">
+                    <h6 class="admin-section-title"><i class="fas fa-palette"></i> Shop Appearance</h6>
+                    <form id="shopAppearanceForm">
+                        <div class="mb-3">
+                            <label for="shopLogoInput" class="form-label">Shop Logo</label>
+                            <div class="d-flex align-items-center gap-3">
+                                <input type="file" class="form-control" id="shopLogoInput" accept="image/*">
+                                <button type="button" class="btn btn-outline-danger" id="removeLogoBtn" style="display: none;">
+                                    <i class="fas fa-trash me-1"></i> Remove
+                                </button>
+                            </div>
+                            <div class="image-preview-container" id="logoPreviewContainer">
+                                <!-- Logo preview will be shown here -->
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="shopPrimaryColor" class="form-label">Primary Color</label>
+                            <input type="color" class="form-control form-control-color" id="shopPrimaryColor" value="#002f34">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="shopAccentColor" class="form-label">Accent Color</label>
+                            <input type="color" class="form-control form-control-color" id="shopAccentColor" value="#ffce32">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="shopTextColor" class="form-label">Text Color</label>
+                            <input type="color" class="form-control form-control-color" id="shopTextColor" value="#ffffff">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-save me-1"></i> Save Appearance Settings
+                        </button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Products Tab -->
+            <div class="tab-pane fade" id="productsTab">
+                <div class="admin-section">
+                    <h6 class="admin-section-title"><i class="fas fa-boxes"></i> Manage Products</h6>
+                    <button class="btn btn-primary w-100 mb-3" id="addProductBtn">
+                        <i class="fas fa-plus me-1"></i> Add New Product
+                    </button>
+                    
+                    <div class="admin-products-list" id="adminProductsList">
+                        <!-- Products list for admin will be shown here -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> Loading products...
+                        </div>
+                    </div>
+                    
+                    <div class="loading-spinner" id="adminInfiniteLoader" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Delivery Tab -->
+            <div class="tab-pane fade" id="deliveryTab">
+                <div class="admin-section">
+                    <h6 class="admin-section-title"><i class="fas fa-truck"></i> Delivery Settings</h6>
+                    <div class="mb-3">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="enableDeliveryToggle">
+                            <label class="form-check-label" for="enableDeliveryToggle">Enable Delivery</label>
+                        </div>
+                    </div>
+                    
+                    <div id="deliverySettings" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Method</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="deliveryMethod" id="ownDeliveryMethod" value="own" checked>
+                                <label class="form-check-label" for="ownDeliveryMethod">
+                                    Use your own delivery service
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="deliveryMethod" id="partnerDeliveryMethod" value="partner">
+                                <label class="form-check-label" for="partnerDeliveryMethod">
+                                    Connect to a delivery partner
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="ownDeliverySettings">
+                            <div class="mb-3">
+                                <label for="deliveryPhoneInput" class="form-label">Delivery Phone Number</label>
+                                <input type="tel" class="form-control" id="deliveryPhoneInput">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="deliveryPriceInput" class="form-label">Delivery Price</label>
+                                <input type="number" class="form-control" id="deliveryPriceInput" min="0" step="0.01">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="deliveryTimeInput" class="form-label">Delivery Time (e.g., 1-2 days)</label>
+                                <input type="text" class="form-control" id="deliveryTimeInput">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="deliveryFromInput" class="form-label">Delivery From (Location)</label>
+                                <input type="text" class="form-control" id="deliveryFromInput">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="deliveryToInput" class="form-label">Delivery To (Locations)</label>
+                                <input type="text" class="form-control" id="deliveryToInput" placeholder="Comma separated locations">
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="deliveryDetailsInput" class="form-label">Delivery Details</label>
+                                <textarea class="form-control" id="deliveryDetailsInput" rows="3"></textarea>
+                            </div>
+                            
+                            <div class="mb-3 form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="showDeliveryPhoneToggle">
+                                <label class="form-check-label" for="showDeliveryPhoneToggle">Show delivery phone on product pages</label>
+                            </div>
+                        </div>
+                        
+                        <div id="partnerDeliverySettings" style="display: none;">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> Select a delivery partner from the list below
+                            </div>
+                            
+                            <div class="list-group mb-3" id="deliveryPartnersList">
+                                <!-- Delivery partners will be listed here -->
+                                <div class="text-center py-3">
+                                    <div class="spinner"></div>
+                                    <p>Loading delivery partners...</p>
+                                </div>
+                            </div>
+                            
+                            <div class="alert alert-success" id="selectedPartnerInfo" style="display: none;">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <span id="partnerNameDisplay"></span> is currently your delivery partner
+                                <button class="btn btn-sm btn-outline-danger ms-2" id="removePartnerBtn">
+                                    <i class="fas fa-trash me-1"></i> Remove
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <button type="button" class="btn btn-primary w-100" id="saveDeliveryBtn">
+                            <i class="fas fa-save me-1"></i> Save Delivery Settings
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="admin-section" id="deliveryServicesSection" style="display: none;">
+                    <h6 class="admin-section-title"><i class="fas fa-truck"></i> Your Delivery Services</h6>
+                    <button class="btn btn-outline-primary mb-3 w-100" id="addDeliveryServiceBtn">
+                        <i class="fas fa-plus me-1"></i> Add Delivery Service
+                    </button>
+                    <div class="delivery-services-list" id="deliveryServicesListAdmin">
+                        <!-- Delivery services will be listed here -->
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> No delivery services added yet
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Product Modal -->
+    <div class="modal fade" id="productFormModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="productFormModalTitle">Add New Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="productForm">
+                        <input type="hidden" id="editProductId">
+                        
+                        <div class="mb-3">
+                            <label for="productNameInput" class="form-label">Product Name</label>
+                            <input type="text" class="form-control" id="productNameInput" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="productDescriptionInput" class="form-label">Description</label>
+                            <textarea class="form-control" id="productDescriptionInput" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="productPriceInput" class="form-label">Price</label>
+                                <input type="number" class="form-control" id="productPriceInput" min="0" step="0.01" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="productOldPriceInput" class="form-label">Old Price (optional)</label>
+                                <input type="number" class="form-control" id="productOldPriceInput" min="0" step="0.01">
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="productImagesInput" class="form-label">Product Images (max 3)</label>
+                            <input type="file" class="form-control" id="productImagesInput" accept="image/*" multiple>
+                            <div class="image-preview-container" id="productImagesPreview">
+                                <!-- Image previews will be shown here -->
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Product Options</label>
+                            <div id="productOptionsContainer">
+                                <!-- Product options will be added here -->
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-2" id="addOptionBtn">
+                                <i class="fas fa-plus me-1"></i> Add Option
+                            </button>
+                        </div>
+                        
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="productActiveToggle" checked>
+                            <label class="form-check-label" for="productActiveToggle">Active (visible in shop)</label>
+                        </div>
+                        
+                        <div class="mb-3 form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="productShowBadgeToggle" checked>
+                            <label class="form-check-label" for="productShowBadgeToggle">Show discount badge</label>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Save Product
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" id="deleteProductBtn" style="display: none;">
+                                <i class="fas fa-trash me-1"></i> Delete Product
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Option Modal -->
+    <div class="modal fade" id="addOptionModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Add Product Option</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addOptionForm">
+                        <div class="mb-3">
+                            <label for="optionName" class="form-label">Option Name (e.g., Color, Size)</label>
+                            <input type="text" class="form-control" id="optionName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="optionValues" class="form-label">Option Values (comma separated)</label>
+                            <input type="text" class="form-control" id="optionValues" placeholder="e.g., Red,Blue,Green" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-plus me-1"></i> Add Option
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Delivery Service Modal -->
+    <div class="modal fade" id="deliveryServiceModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deliveryServiceModalTitle">Add Delivery Service</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="deliveryServiceForm">
+                        <input type="hidden" id="editDeliveryServiceId">
+                        
+                        <div class="mb-3">
+                            <label for="deliveryServiceName" class="form-label">Service Name</label>
+                            <input type="text" class="form-control" id="deliveryServiceName" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="deliveryServicePhone" class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="deliveryServicePhone" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="deliveryServicePrice" class="form-label">Price</label>
+                            <input type="number" class="form-control" id="deliveryServicePrice" min="0" step="0.01">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="deliveryServiceTime" class="form-label">Delivery Time</label>
+                            <input type="text" class="form-control" id="deliveryServiceTime" placeholder="e.g., 1-2 days">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="deliveryServiceFrom" class="form-label">Delivery From (Location)</label>
+                            <input type="text" class="form-control" id="deliveryServiceFrom">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="deliveryServiceTo" class="form-label">Delivery To (Locations)</label>
+                            <input type="text" class="form-control" id="deliveryServiceTo" placeholder="Comma separated locations">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="deliveryServiceDetails" class="form-label">Details</label>
+                            <textarea class="form-control" id="deliveryServiceDetails" rows="3"></textarea>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i> Save Service
+                            </button>
+                            <button type="button" class="btn btn-outline-danger" id="deleteDeliveryServiceBtn" style="display: none;">
+                                <i class="fas fa-trash me-1"></i> Delete Service
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/lz-string@1.4.4/libs/lz-string.min.js"></script>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC87bXSNeIQ3Cno4wQAO4COy9fx_VZRNY4",
+            authDomain: "my-free-storage-test.firebaseapp.com",
+            databaseURL: "https://my-free-storage-test-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "my-free-storage-test",
+            storageBucket: "my-free-storage-test.appspot.com",
+            messagingSenderId: "804356355407",
+            appId: "1:804356355407:web:e29bc41cc36d92712cc13a",
+            measurementId: "G-G7EP7DZEKS"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // DOM elements
+        const loadingScreen = document.getElementById('loadingScreen');
+        const loginForm = document.getElementById('loginForm');
+        const adminPanel = document.getElementById('adminPanel');
+        const adminTitle = document.getElementById('adminTitle');
+        const shopNameDisplay = document.getElementById('shopNameDisplay');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const adminLoginForm = document.getElementById('adminLoginForm');
+        const ownerUsername = document.getElementById('ownerUsername');
+        const ownerCode = document.getElementById('ownerCode');
+        
+        // Shop settings elements
+        const shopSettingsForm = document.getElementById('shopSettingsForm');
+        const shopNameInput = document.getElementById('shopNameInput');
+        const shopDescriptionInput = document.getElementById('shopDescriptionInput');
+        const shopPhoneInput = document.getElementById('shopPhoneInput');
+        const showPhoneToggle = document.getElementById('showPhoneToggle');
+        const shopPublicToggle = document.getElementById('shopPublicToggle');
+        const adminPasswordInput = document.getElementById('adminPasswordInput');
+        const shopAppearanceForm = document.getElementById('shopAppearanceForm');
+        const shopLogoInput = document.getElementById('shopLogoInput');
+        const removeLogoBtn = document.getElementById('removeLogoBtn');
+        const logoPreviewContainer = document.getElementById('logoPreviewContainer');
+        const shopPrimaryColor = document.getElementById('shopPrimaryColor');
+        const shopAccentColor = document.getElementById('shopAccentColor');
+        const shopTextColor = document.getElementById('shopTextColor');
+        
+        // Products elements
+        const adminProductsList = document.getElementById('adminProductsList');
+        const addProductBtn = document.getElementById('addProductBtn');
+        const productFormModal = new bootstrap.Modal(document.getElementById('productFormModal'));
+        const productFormModalTitle = document.getElementById('productFormModalTitle');
+        const productForm = document.getElementById('productForm');
+        const editProductId = document.getElementById('editProductId');
+        const productNameInput = document.getElementById('productNameInput');
+        const productDescriptionInput = document.getElementById('productDescriptionInput');
+        const productPriceInput = document.getElementById('productPriceInput');
+        const productOldPriceInput = document.getElementById('productOldPriceInput');
+        const productImagesInput = document.getElementById('productImagesInput');
+        const productImagesPreview = document.getElementById('productImagesPreview');
+        const productOptionsContainer = document.getElementById('productOptionsContainer');
+        const productActiveToggle = document.getElementById('productActiveToggle');
+        const productShowBadgeToggle = document.getElementById('productShowBadgeToggle');
+        const deleteProductBtn = document.getElementById('deleteProductBtn');
+        const addOptionBtn = document.getElementById('addOptionBtn');
+        const addOptionModal = new bootstrap.Modal(document.getElementById('addOptionModal'));
+        const addOptionForm = document.getElementById('addOptionForm');
+        const optionName = document.getElementById('optionName');
+        const optionValues = document.getElementById('optionValues');
+        const adminInfiniteLoader = document.getElementById('adminInfiniteLoader');
+        
+        // Delivery elements
+        const enableDeliveryToggle = document.getElementById('enableDeliveryToggle');
+        const deliverySettings = document.getElementById('deliverySettings');
+        const ownDeliveryMethod = document.getElementById('ownDeliveryMethod');
+        const partnerDeliveryMethod = document.getElementById('partnerDeliveryMethod');
+        const ownDeliverySettings = document.getElementById('ownDeliverySettings');
+        const partnerDeliverySettings = document.getElementById('partnerDeliverySettings');
+        const deliveryPhoneInput = document.getElementById('deliveryPhoneInput');
+        const deliveryPriceInput = document.getElementById('deliveryPriceInput');
+        const deliveryTimeInput = document.getElementById('deliveryTimeInput');
+        const deliveryFromInput = document.getElementById('deliveryFromInput');
+        const deliveryToInput = document.getElementById('deliveryToInput');
+        const deliveryDetailsInput = document.getElementById('deliveryDetailsInput');
+        const showDeliveryPhoneToggle = document.getElementById('showDeliveryPhoneToggle');
+        const deliveryPartnersList = document.getElementById('deliveryPartnersList');
+        const selectedPartnerInfo = document.getElementById('selectedPartnerInfo');
+        const partnerNameDisplay = document.getElementById('partnerNameDisplay');
+        const removePartnerBtn = document.getElementById('removePartnerBtn');
+        const saveDeliveryBtn = document.getElementById('saveDeliveryBtn');
+        const deliveryServicesSection = document.getElementById('deliveryServicesSection');
+        const addDeliveryServiceBtn = document.getElementById('addDeliveryServiceBtn');
+        const deliveryServicesListAdmin = document.getElementById('deliveryServicesListAdmin');
+        const deliveryServiceModal = new bootstrap.Modal(document.getElementById('deliveryServiceModal'));
+        const deliveryServiceModalTitle = document.getElementById('deliveryServiceModalTitle');
+        const deliveryServiceForm = document.getElementById('deliveryServiceForm');
+        const editDeliveryServiceId = document.getElementById('editDeliveryServiceId');
+        const deliveryServiceName = document.getElementById('deliveryServiceName');
+        const deliveryServicePhone = document.getElementById('deliveryServicePhone');
+        const deliveryServicePrice = document.getElementById('deliveryServicePrice');
+        const deliveryServiceTime = document.getElementById('deliveryServiceTime');
+        const deliveryServiceFrom = document.getElementById('deliveryServiceFrom');
+        const deliveryServiceTo = document.getElementById('deliveryServiceTo');
+        const deliveryServiceDetails = document.getElementById('deliveryServiceDetails');
+        const deleteDeliveryServiceBtn = document.getElementById('deleteDeliveryServiceBtn');
+
+        // Global variables
+        let currentShopId = null;
+        let currentShopData = null;
+        let logoFile = null;
+        let productImages = [];
+        let lastVisibleAdminProduct = null;
+        let loadingMoreAdminProducts = false;
+        let allAdminProductsLoaded = false;
+        let currentDeliveryPartner = null;
+        const IMGBB_API_KEY = '522870512c188ddca7e0bcd4d64618e0';
+
+        // Show toast message
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            toast.className = `toast show align-items-center text-white bg-${type} border-0`;
+            toast.style.position = 'fixed';
+            toast.style.bottom = '20px';
+            toast.style.right = '20px';
+            toast.style.zIndex = '1100';
+            
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Auto remove after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            }, 3000);
+            
+            // Close button
+            toast.querySelector('.btn-close').addEventListener('click', () => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    document.body.removeChild(toast);
+                }, 300);
+            });
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hide loading screen after 1 second
+            setTimeout(() => {
+                loadingScreen.classList.add('hidden');
+            }, 1000);
+            
+            // Set up event listeners
+            setupEventListeners();
+        });
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Admin login form
+            adminLoginForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const username = ownerUsername.value.trim();
+                const accessCode = ownerCode.value.trim();
+                
+                if (!username || !accessCode) {
+                    showToast('Please enter both username and access code', 'warning');
+                    return;
+                }
+                
+                try {
+                    // Show loading
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Verifying...';
+                    submitBtn.disabled = true;
+                    
+                    // Search for shop by owner name and access code
+                    const shopsRef = db.collection('shops');
+                    const querySnapshot = await shopsRef
+                        .where('ownerName', '==', username)
+                        .where('ownerAccessCode', '==', accessCode)
+                        .limit(1)
+                        .get();
+                    
+                    if (querySnapshot.empty) {
+                        showToast('Invalid username or access code', 'error');
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                    
+                    const shopDoc = querySnapshot.docs[0];
+                    const shopData = shopDoc.data();
+                    
+                    // Login successful
+                    currentShopId = shopDoc.id;
+                    currentShopData = shopData;
+                    
+                    // Hide login form, show admin panel
+                    loginForm.style.display = 'none';
+                    adminPanel.style.display = 'block';
+                    
+                    // Update shop name display
+                    shopNameDisplay.textContent = shopData.name;
+                    
+                    // Load admin data
+                    loadAdminData();
+                    
+                    showToast('Login successful', 'success');
+                } catch (error) {
+                    console.error('Login error:', error);
+                    showToast('Error during login: ' + error.message, 'error');
+                } finally {
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = originalBtnText;
+                    submitBtn.disabled = false;
+                }
+            });
+            
+            // Logout button
+            logoutBtn.addEventListener('click', () => {
+                currentShopId = null;
+                currentShopData = null;
+                
+                // Show login form, hide admin panel
+                loginForm.style.display = 'block';
+                adminPanel.style.display = 'none';
+                
+                // Reset forms
+                adminLoginForm.reset();
+                
+                showToast('Logged out successfully', 'success');
+            });
+            
+            // Shop settings form
+            shopSettingsForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                try {
+                    // Show loading
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+                    submitBtn.disabled = true;
+                    
+                    // Prepare update data
+                    const updateData = {
+                        name: shopNameInput.value,
+                        description: shopDescriptionInput.value,
+                        phone: shopPhoneInput.value,
+                        showPhone: showPhoneToggle.checked,
+                        isPublic: shopPublicToggle.checked,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    // Update password if changed
+                    if (adminPasswordInput.value) {
+                        updateData.ownerAccessCode = adminPasswordInput.value;
+                        adminPasswordInput.value = ''; // Clear the field
+                    }
+                    
+                    // Update shop data
+                    await db.collection('shops').doc(currentShopId).set(updateData, { merge: true });
+                    
+                    // Update current shop data
+                    currentShopData = { ...currentShopData, ...updateData };
+                    
+                    // Update shop name display
+                    shopNameDisplay.textContent = updateData.name;
+                    
+                    showToast('Shop settings saved', 'success');
+                } catch (error) {
+                    console.error('Error saving shop settings:', error);
+                    showToast('Error saving settings: ' + error.message, 'error');
+                } finally {
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Shop Information';
+                    submitBtn.disabled = false;
+                }
+            });
+            
+            // Shop appearance form
+            shopAppearanceForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                try {
+                    // Show loading
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+                    submitBtn.disabled = true;
+                    
+                    // Prepare update data
+                    const updateData = {
+                        customStyles: {
+                            primaryColor: shopPrimaryColor.value,
+                            accentColor: shopAccentColor.value,
+                            textColor: shopTextColor.value
+                        },
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    // Upload logo if changed
+                    if (logoFile) {
+                        const logoUrl = await uploadImageToImgBB(logoFile);
+                        updateData.logoUrl = logoUrl;
+                        logoFile = null;
+                    }
+                    
+                    // Update shop data
+                    await db.collection('shops').doc(currentShopId).set(updateData, { merge: true });
+                    
+                    // Update current shop data
+                    currentShopData = { ...currentShopData, ...updateData };
+                    
+                    showToast('Appearance settings saved', 'success');
+                } catch (error) {
+                    console.error('Error saving appearance settings:', error);
+                    showToast('Error saving settings: ' + error.message, 'error');
+                } finally {
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Appearance Settings';
+                    submitBtn.disabled = false;
+                }
+            });
+            
+            // Logo upload
+            shopLogoInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    logoFile = e.target.files[0];
+                    
+                    // Show preview
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        logoPreviewContainer.innerHTML = `
+                            <img src="${event.target.result}" class="image-preview" style="width: 100px; height: 100px; border-radius: 50%;">
+                        `;
+                        removeLogoBtn.style.display = 'block';
+                    };
+                    reader.readAsDataURL(logoFile);
+                }
+            });
+            
+            // Remove logo
+            removeLogoBtn.addEventListener('click', async () => {
+                try {
+                    await db.collection('shops').doc(currentShopId).set({
+                        logoUrl: firebase.firestore.FieldValue.delete(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    }, { merge: true });
+                    
+                    // Update current shop data
+                    currentShopData.logoUrl = null;
+                    
+                    logoPreviewContainer.innerHTML = '';
+                    removeLogoBtn.style.display = 'none';
+                    logoFile = null;
+                    shopLogoInput.value = '';
+                    
+                    showToast('Logo removed', 'success');
+                } catch (error) {
+                    showToast('Error removing logo: ' + error.message, 'error');
+                }
+            });
+            
+            // Add product button
+            addProductBtn.addEventListener('click', () => {
+                productFormModalTitle.textContent = 'Add New Product';
+                editProductId.value = '';
+                productForm.reset();
+                productActiveToggle.checked = true;
+                productShowBadgeToggle.checked = true;
+                deleteProductBtn.style.display = 'none';
+                productImagesPreview.innerHTML = '';
+                productImages = [];
+                productOptionsContainer.innerHTML = '';
+                productFormModal.show();
+            });
+            
+            // Product form submission
+            productForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                try {
+                    // Show loading
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+                    submitBtn.disabled = true;
+                    
+                    // Get product data from form
+                    const productData = {
+                        name: productNameInput.value,
+                        description: productDescriptionInput.value,
+                        price: parseFloat(productPriceInput.value),
+                        oldPrice: productOldPriceInput.value ? parseFloat(productOldPriceInput.value) : null,
+                        isActive: productActiveToggle.checked,
+                        showBadge: productShowBadgeToggle.checked,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    // Add options if any
+                    const options = {};
+                    document.querySelectorAll('[name="option-name"]').forEach(input => {
+                        const optionName = input.value;
+                        const optionValuesInput = input.nextElementSibling;
+                        const optionValues = optionValuesInput.value.split(',');
+                        options[optionName] = optionValues;
+                    });
+                    
+                    if (Object.keys(options).length > 0) {
+                        productData.options = options;
+                    }
+                    
+                    // Upload images if any new files selected
+                    if (productImagesInput.files.length > 0) {
+                        const files = Array.from(productImagesInput.files).slice(0, 3);
+                        const uploadPromises = files.map(file => uploadImageToImgBB(file));
+                        
+                        // Wait for all uploads to complete
+                        const uploadedImageUrls = await Promise.all(uploadPromises);
+                        
+                        // Combine with any existing images (for edit)
+                        productData.images = [...uploadedImageUrls, ...productImages.filter(img => typeof img === 'string')].slice(0, 3);
+                    } else if (productImages.length > 0) {
+                        // Use existing images (for edit)
+                        productData.images = productImages.filter(img => typeof img === 'string').slice(0, 3);
+                    } else {
+                        showToast('Please add at least one image', 'warning');
+                        submitBtn.innerHTML = originalBtnText;
+                        submitBtn.disabled = false;
+                        return;
+                    }
+                    
+                    // Save product to Firestore
+                    if (editProductId.value) {
+                        // Update existing product
+                        await db.collection('shops').doc(currentShopId)
+                            .collection('products').doc(editProductId.value)
+                            .update(productData);
+                        
+                        showToast('Product updated', 'success');
+                    } else {
+                        // Add new product
+                        productData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                        await db.collection('shops').doc(currentShopId)
+                            .collection('products').add(productData);
+                        
+                        showToast('Product added', 'success');
+                    }
+                    
+                    // Reload products
+                    loadAdminProducts();
+                    
+                    // Close modal
+                    productFormModal.hide();
+                } catch (error) {
+                    console.error('Error saving product:', error);
+                    showToast('Error saving product: ' + error.message, 'error');
+                } finally {
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Product';
+                    submitBtn.disabled = false;
+                }
+            });
+            
+            // Product images upload
+            productImagesInput.addEventListener('change', (e) => {
+                if (e.target.files.length > 0) {
+                    // Limit to 3 images
+                    const files = Array.from(e.target.files).slice(0, 3);
+                    
+                    // Clear existing previews
+                    productImagesPreview.innerHTML = '';
+                    productImages = [];
+                    
+                    // Add new images
+                    files.forEach((file, index) => {
+                        const reader = new FileReader();
+                        reader.onload = (event) => {
+                            const imgContainer = document.createElement('div');
+                            imgContainer.style.position = 'relative';
+                            
+                            imgContainer.innerHTML = `
+                                <img src="${event.target.result}" class="image-preview">
+                                <button class="remove-image-btn" data-index="${index}">&times;</button>
+                            `;
+                            
+                            productImagesPreview.appendChild(imgContainer);
+                            
+                            // Store file for upload
+                            productImages.push(file);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                }
+            });
+            
+            // Remove image buttons
+            document.addEventListener('click', (e) => {
+                if (e.target.classList.contains('remove-image-btn') && e.target.dataset.index !== undefined) {
+                    const index = parseInt(e.target.dataset.index);
+                    productImages.splice(index, 1);
+                    
+                    // Update preview
+                    updateProductImagesPreview();
+                }
+            });
+            
+            // Add option button
+            addOptionBtn.addEventListener('click', () => {
+                addOptionModal.show();
+            });
+            
+            // Add option form
+            addOptionForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const name = optionName.value.trim();
+                const values = optionValues.value.split(',').map(v => v.trim()).filter(v => v);
+                
+                if (name && values.length > 0) {
+                    addOptionToForm(name, values);
+                    
+                    // Close modal
+                    addOptionModal.hide();
+                    addOptionForm.reset();
+                }
+            });
+            
+            // Delete product button
+            deleteProductBtn.addEventListener('click', () => {
+                if (editProductId.value) {
+                    deleteProduct(editProductId.value);
+                    productFormModal.hide();
+                }
+            });
+            
+            // Delivery toggle
+            enableDeliveryToggle.addEventListener('change', () => {
+                deliverySettings.style.display = enableDeliveryToggle.checked ? 'block' : 'none';
+                deliveryServicesSection.style.display = enableDeliveryToggle.checked ? 'block' : 'none';
+                
+                if (enableDeliveryToggle.checked) {
+                    loadDeliveryPartners();
+                    loadAdminDeliveryServices();
+                }
+            });
+            
+            // Delivery method radio buttons
+            ownDeliveryMethod.addEventListener('change', () => {
+                if (ownDeliveryMethod.checked) {
+                    ownDeliverySettings.style.display = 'block';
+                    partnerDeliverySettings.style.display = 'none';
+                }
+            });
+            
+            partnerDeliveryMethod.addEventListener('change', () => {
+                if (partnerDeliveryMethod.checked) {
+                    ownDeliverySettings.style.display = 'none';
+                    partnerDeliverySettings.style.display = 'block';
+                    loadDeliveryPartners();
+                }
+            });
+            
+            // Save delivery settings
+            saveDeliveryBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                
+                try {
+                    // Show loading
+                    const submitBtn = e.target;
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+                    submitBtn.disabled = true;
+                    
+                    let deliveryData = {
+                        deliveryEnabled: enableDeliveryToggle.checked,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    if (enableDeliveryToggle.checked) {
+                        if (ownDeliveryMethod.checked) {
+                            // Own delivery settings
+                            deliveryData = {
+                                ...deliveryData,
+                                deliveryMethod: 'own',
+                                deliveryPhone: deliveryPhoneInput.value,
+                                deliveryPrice: deliveryPriceInput.value ? parseFloat(deliveryPriceInput.value) : null,
+                                deliveryTime: deliveryTimeInput.value,
+                                deliveryFrom: deliveryFromInput.value,
+                                deliveryTo: deliveryToInput.value,
+                                deliveryDetails: deliveryDetailsInput.value,
+                                showDeliveryPhone: showDeliveryPhoneToggle.checked,
+                                deliveryPartnerId: null,
+                                deliveryPartnerName: null
+                            };
+                        } else if (partnerDeliveryMethod.checked && currentDeliveryPartner) {
+                            // Partner delivery settings
+                            deliveryData = {
+                                ...deliveryData,
+                                deliveryMethod: 'partner',
+                                deliveryPartnerId: currentDeliveryPartner.id,
+                                deliveryPartnerName: currentDeliveryPartner.name,
+                                deliveryPhone: currentDeliveryPartner.phone,
+                                deliveryPrice: currentDeliveryPartner.price || null,
+                                deliveryTime: currentDeliveryPartner.time || null,
+                                deliveryFrom: currentDeliveryPartner.from || null,
+                                deliveryTo: currentDeliveryPartner.to || null,
+                                deliveryDetails: currentDeliveryPartner.details || 'Partner delivery service',
+                                showDeliveryPhone: true
+                            };
+                        } else {
+                            showToast('Please select a delivery partner', 'warning');
+                            submitBtn.innerHTML = originalBtnText;
+                            submitBtn.disabled = false;
+                            return;
+                        }
+                    }
+                    
+                    // Update shop data
+                    await db.collection('shops').doc(currentShopId).set(deliveryData, { merge: true });
+                    
+                    // Update current shop data
+                    currentShopData = { ...currentShopData, ...deliveryData };
+                    
+                    showToast('Delivery settings saved', 'success');
+                } catch (error) {
+                    console.error('Error saving delivery settings:', error);
+                    showToast('Error saving delivery settings: ' + error.message, 'error');
+                } finally {
+                    const submitBtn = e.target;
+                    submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Delivery Settings';
+                    submitBtn.disabled = false;
+                }
+            });
+            
+            // Remove delivery partner
+            removePartnerBtn.addEventListener('click', () => {
+                currentDeliveryPartner = null;
+                selectedPartnerInfo.style.display = 'none';
+                showToast('Delivery partner removed', 'info');
+            });
+            
+            // Add delivery service button
+            addDeliveryServiceBtn.addEventListener('click', () => {
+                deliveryServiceModalTitle.textContent = 'Add Delivery Service';
+                editDeliveryServiceId.value = '';
+                deliveryServiceForm.reset();
+                deleteDeliveryServiceBtn.style.display = 'none';
+                deliveryServiceModal.show();
+            });
+            
+            // Delivery service form
+            deliveryServiceForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                try {
+                    // Show loading
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    const originalBtnText = submitBtn.innerHTML;
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Saving...';
+                    submitBtn.disabled = true;
+                    
+                    // Prepare service data
+                    const serviceData = {
+                        name: deliveryServiceName.value,
+                        phone: deliveryServicePhone.value,
+                        price: deliveryServicePrice.value ? parseFloat(deliveryServicePrice.value) : null,
+                        time: deliveryServiceTime.value,
+                        from: deliveryServiceFrom.value,
+                        to: deliveryServiceTo.value,
+                        details: deliveryServiceDetails.value,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    };
+                    
+                    if (editDeliveryServiceId.value) {
+                        // Update existing service
+                        await db.collection('shops').doc(currentShopId)
+                            .collection('deliveryServices').doc(editDeliveryServiceId.value)
+                            .update(serviceData);
+                        
+                        showToast('Delivery service updated', 'success');
+                    } else {
+                        // Add new service
+                        serviceData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                        await db.collection('shops').doc(currentShopId)
+                            .collection('deliveryServices').add(serviceData);
+                        
+                        showToast('Delivery service added', 'success');
+                    }
+                    
+                    // Reload services
+                    loadAdminDeliveryServices();
+                    
+                    // Close modal
+                    deliveryServiceModal.hide();
+                } catch (error) {
+                    console.error('Error saving delivery service:', error);
+                    showToast('Error saving service: ' + error.message, 'error');
+                } finally {
+                    const submitBtn = e.target.querySelector('button[type="submit"]');
+                    submitBtn.innerHTML = '<i class="fas fa-save me-1"></i> Save Service';
+                    submitBtn.disabled = false;
+                }
+            });
+            
+            // Delete delivery service button
+            deleteDeliveryServiceBtn.addEventListener('click', () => {
+                if (editDeliveryServiceId.value) {
+                    deleteDeliveryService(editDeliveryServiceId.value);
+                    deliveryServiceModal.hide();
+                }
+            });
+            
+            // Infinite scroll for admin products
+            adminPanel.addEventListener('scroll', () => {
+                const scrollTop = adminPanel.scrollTop;
+                const scrollHeight = adminPanel.scrollHeight;
+                const clientHeight = adminPanel.clientHeight;
+                
+                if (scrollTop + clientHeight >= scrollHeight - 100) {
+                    loadAdminProducts(true);
+                }
+            });
+        }
+
+        // Load admin data
+        function loadAdminData() {
+            // Load shop settings
+            shopNameInput.value = currentShopData.name || '';
+            shopDescriptionInput.value = currentShopData.description || '';
+            shopPublicToggle.checked = currentShopData.isPublic !== false;
+            shopPhoneInput.value = currentShopData.phone || '';
+            showPhoneToggle.checked = currentShopData.showPhone || false;
+            
+            // Load custom styles
+            if (currentShopData.customStyles) {
+                shopPrimaryColor.value = currentShopData.customStyles.primaryColor || '#002f34';
+                shopAccentColor.value = currentShopData.customStyles.accentColor || '#ffce32';
+                shopTextColor.value = currentShopData.customStyles.textColor || '#ffffff';
+            }
+            
+            // Load logo if exists
+            if (currentShopData.logoUrl) {
+                logoPreviewContainer.innerHTML = `
+                    <img src="${currentShopData.logoUrl}" class="image-preview" style="width: 100px; height: 100px; border-radius: 50%;">
+                `;
+                removeLogoBtn.style.display = 'block';
+            } else {
+                removeLogoBtn.style.display = 'none';
+            }
+            
+            // Load delivery settings
+            enableDeliveryToggle.checked = currentShopData.deliveryEnabled || false;
+            deliverySettings.style.display = currentShopData.deliveryEnabled ? 'block' : 'none';
+            deliveryServicesSection.style.display = currentShopData.deliveryEnabled ? 'block' : 'none';
+            
+            if (currentShopData.deliveryEnabled) {
+                if (currentShopData.deliveryMethod === 'partner') {
+                    partnerDeliveryMethod.checked = true;
+                    ownDeliverySettings.style.display = 'none';
+                    partnerDeliverySettings.style.display = 'block';
+                    
+                    currentDeliveryPartner = {
+                        id: currentShopData.deliveryPartnerId,
+                        name: currentShopData.deliveryPartnerName,
+                        phone: currentShopData.deliveryPhone,
+                        price: currentShopData.deliveryPrice,
+                        time: currentShopData.deliveryTime,
+                        from: currentShopData.deliveryFrom,
+                        to: currentShopData.deliveryTo,
+                        details: currentShopData.deliveryDetails
+                    };
+                    
+                    selectedPartnerInfo.style.display = 'flex';
+                    partnerNameDisplay.textContent = currentShopData.deliveryPartnerName;
+                } else {
+                    ownDeliveryMethod.checked = true;
+                    ownDeliverySettings.style.display = 'block';
+                    partnerDeliverySettings.style.display = 'none';
+                    
+                    deliveryPhoneInput.value = currentShopData.deliveryPhone || '';
+                    deliveryPriceInput.value = currentShopData.deliveryPrice || '';
+                    deliveryTimeInput.value = currentShopData.deliveryTime || '';
+                    deliveryFromInput.value = currentShopData.deliveryFrom || '';
+                    deliveryToInput.value = currentShopData.deliveryTo || '';
+                    deliveryDetailsInput.value = currentShopData.deliveryDetails || '';
+                    showDeliveryPhoneToggle.checked = currentShopData.showDeliveryPhone || false;
+                }
+                
+                loadDeliveryPartners();
+                loadAdminDeliveryServices();
+            }
+            
+            // Load products for admin
+            loadAdminProducts();
+        }
+
+        // Load admin products with pagination
+        function loadAdminProducts(loadMore = false) {
+            if (loadMore && (loadingMoreAdminProducts || allAdminProductsLoaded)) return;
+            
+            if (!loadMore) {
+                adminProductsList.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+                lastVisibleAdminProduct = null;
+                allAdminProductsLoaded = false;
+            } else {
+                loadingMoreAdminProducts = true;
+                adminInfiniteLoader.style.display = 'flex';
+            }
+            
+            let query = db.collection('shops').doc(currentShopId)
+                .collection('products')
+                .orderBy('createdAt', 'desc')
+                .limit(8);
+            
+            if (loadMore && lastVisibleAdminProduct) {
+                query = query.startAfter(lastVisibleAdminProduct);
+            }
+            
+            query.get()
+                .then(snapshot => {
+                    if (!loadMore) {
+                        adminProductsList.innerHTML = '';
+                    }
+                    
+                    if (snapshot.empty) {
+                        if (!loadMore) {
+                            adminProductsList.innerHTML = `
+                                <div class="alert alert-info">
+                                    <i class="fas fa-info-circle me-2"></i> No products added yet
+                                </div>
+                            `;
+                        }
+                        allAdminProductsLoaded = true;
+                        loadingMoreAdminProducts = false;
+                        adminInfiniteLoader.style.display = 'none';
+                        return;
+                    }
+                    
+                    lastVisibleAdminProduct = snapshot.docs[snapshot.docs.length - 1];
+                    
+                    snapshot.forEach(doc => {
+                        const product = doc.data();
+                        product.id = doc.id;
+                        
+                        const productItem = document.createElement('div');
+                        productItem.className = 'admin-product-item';
+                        
+                        productItem.innerHTML = `
+                            <img src="${product.images ? product.images[0] : 'data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%2280%22%20height%3D%2280%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2080%2080%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3Cstyle%20type%3D%22text%2Fcss%22%3E%23holder_18c3b7c4b1e%20text%20%7B%20fill%3A%23AAAAAA%3Bfont-weight%3Abold%3Bfont-family%3AArial%2C%20Helvetica%2C%20Open%20Sans%2C%20sans-serif%2C%20monospace%3Bfont-size%3A10pt%20%7D%20%3C%2Fstyle%3E%3C%2Fdefs%3E%3Cg%20id%3D%22holder_18c3b7c4b1e%22%3E%3Crect%20width%3D%2280%22%20height%3D%2280%22%20fill%3D%22%23EEEEEE%22%3E%3C%2Frect%3E%3Cg%3E%3Ctext%20x%3D%2215.0859375%22%20y%3D%2244.5%22%3E80x80%3C%2Ftext%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E'}" 
+                                class="admin-product-image" alt="${product.name}" loading="lazy">
+                            <div class="admin-product-info">
+                                <h6>${product.name}</h6>
+                                <p class="mb-1">$${product.price.toFixed(2)}</p>
+                                <span class="badge ${product.isActive ? 'bg-success' : 'bg-secondary'}">
+                                    ${product.isActive ? 'Active' : 'Inactive'}
+                                </span>
+                            </div>
+                            <div class="admin-product-actions">
+                                <button class="btn btn-sm btn-outline-primary edit-product" data-id="${product.id}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger delete-product" data-id="${product.id}">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
+                        `;
+                        
+                        adminProductsList.appendChild(productItem);
+                    });
+                    
+                    // Add event listeners to edit buttons
+                    document.querySelectorAll('.edit-product').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const productId = btn.dataset.id;
+                            editProduct(productId);
+                        });
+                    });
+                    
+                    // Add event listeners to delete buttons
+                    document.querySelectorAll('.delete-product').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const productId = btn.dataset.id;
+                            deleteProduct(productId);
+                        });
+                    });
+                    
+                    loadingMoreAdminProducts = false;
+                    adminInfiniteLoader.style.display = 'none';
+                })
+                .catch(error => {
+                    console.error('Error loading admin products:', error);
+                    adminProductsList.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Error loading products
+                        </div>
+                    `;
+                    loadingMoreAdminProducts = false;
+                    adminInfiniteLoader.style.display = 'none';
+                });
+        }
+
+        // Edit product
+        function editProduct(productId) {
+            db.collection('shops').doc(currentShopId)
+                .collection('products').doc(productId)
+                .get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const product = doc.data();
+                        
+                        // Set form fields
+                        productFormModalTitle.textContent = 'Edit Product';
+                        editProductId.value = productId;
+                        productNameInput.value = product.name;
+                        productDescriptionInput.value = product.description || '';
+                        productPriceInput.value = product.price;
+                        productOldPriceInput.value = product.oldPrice || '';
+                        
+                        // Set active status
+                        productActiveToggle.checked = product.isActive !== false;
+                        productShowBadgeToggle.checked = product.showBadge !== false;
+                        
+                        // Show delete button
+                        deleteProductBtn.style.display = 'block';
+                        
+                        // Clear existing images
+                        productImagesPreview.innerHTML = '';
+                        productImages = [];
+                        
+                        // Add existing images
+                        if (product.images && product.images.length > 0) {
+                            product.images.forEach((image, index) => {
+                                const imgContainer = document.createElement('div');
+                                imgContainer.style.position = 'relative';
+                                
+                                imgContainer.innerHTML = `
+                                    <img src="${image}" class="image-preview" loading="lazy">
+                                    <button class="remove-image-btn" data-index="${index}">&times;</button>
+                                `;
+                                
+                                productImagesPreview.appendChild(imgContainer);
+                                
+                                // Store image URL
+                                productImages.push(image);
+                            });
+                        }
+                        
+                        // Clear existing options
+                        productOptionsContainer.innerHTML = '';
+                        
+                        // Add existing options
+                        if (product.options) {
+                            Object.entries(product.options).forEach(([optionName, values]) => {
+                                addOptionToForm(optionName, values);
+                            });
+                        }
+                        
+                        // Show modal
+                        productFormModal.show();
+                    }
+                });
+        }
+
+        // Delete product
+        function deleteProduct(productId) {
+            if (confirm('Are you sure you want to delete this product?')) {
+                db.collection('shops').doc(currentShopId)
+                    .collection('products').doc(productId)
+                    .delete()
+                    .then(() => {
+                        showToast('Product deleted', 'success');
+                        loadAdminProducts();
+                    })
+                    .catch(error => {
+                        showToast('Error deleting product: ' + error.message, 'error');
+                    });
+            }
+        }
+
+        // Add option to product form
+        function addOptionToForm(optionName, values) {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'card mb-3';
+            
+            optionDiv.innerHTML = `
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0">${optionName}</h6>
+                        <button class="btn btn-sm btn-outline-danger remove-option">
+                            <i class="fas fa-trash"></i> Remove
+                        </button>
+                    </div>
+                    <p class="mb-0 small">Values: ${values.join(', ')}</p>
+                    <input type="hidden" name="option-name" value="${optionName}">
+                    <input type="hidden" name="option-values" value="${values.join(',')}">
+                </div>
+            `;
+            
+            productOptionsContainer.appendChild(optionDiv);
+            
+            // Add event listener to remove button
+            optionDiv.querySelector('.remove-option').addEventListener('click', () => {
+                optionDiv.remove();
+            });
+        }
+
+        // Update product images preview
+        function updateProductImagesPreview() {
+            productImagesPreview.innerHTML = '';
+            
+            productImages.forEach((image, index) => {
+                const imgContainer = document.createElement('div');
+                imgContainer.style.position = 'relative';
+                
+                if (typeof image === 'string') {
+                    // Existing image URL
+                    imgContainer.innerHTML = `
+                        <img src="${image}" class="image-preview">
+                        <button class="remove-image-btn" data-index="${index}">&times;</button>
+                    `;
+                } else {
+                    // New image file
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        imgContainer.innerHTML = `
+                            <img src="${event.target.result}" class="image-preview">
+                            <button class="remove-image-btn" data-index="${index}">&times;</button>
+                        `;
+                    };
+                    reader.readAsDataURL(image);
+                }
+                
+                productImagesPreview.appendChild(imgContainer);
+            });
+        }
+
+        // Load delivery partners
+        function loadDeliveryPartners() {
+            deliveryPartnersList.innerHTML = '<div class="loading-spinner"><div class="spinner"></div></div>';
+            
+            db.collection('deliveries').get()
+                .then(snapshot => {
+                    if (snapshot.empty) {
+                        deliveryPartnersList.innerHTML = `
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i> No delivery partners available
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    deliveryPartnersList.innerHTML = '';
+                    
+                    snapshot.forEach(doc => {
+                        const partner = doc.data();
+                        partner.id = doc.id;
+                        
+                        const partnerItem = document.createElement('button');
+                        partnerItem.className = 'list-group-item list-group-item-action';
+                        
+                        partnerItem.innerHTML = `
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">${partner.name || 'Delivery Partner'}</h6>
+                                <small>${partner.price ? `$${partner.price}` : 'Free'}</small>
+                            </div>
+                            <p class="mb-1 small">${partner.details || 'No details provided'}</p>
+                            <small><i class="fas fa-phone me-1"></i> ${partner.phone || 'No phone'}</small>
+                            ${partner.time ? `<small class="d-block"><i class="fas fa-clock me-1"></i> ${partner.time}</small>` : ''}
+                            ${partner.from && partner.to ?
+                                `<small class="d-block"><i class="fas fa-map-marker-alt me-1"></i> From ${partner.from} to ${partner.to}</small>` : ''}
+                        `;
+
+                        partnerItem.addEventListener('click', () => {
+                            currentDeliveryPartner = partner;
+                            selectedPartnerInfo.style.display = 'flex';
+                            partnerNameDisplay.textContent = partner.name;
+                            showToast(`${partner.name} selected as delivery partner`, 'success');
+                        });
+
+                        deliveryPartnersList.appendChild(partnerItem);
+                    });
+
+                    // If we already have a partner selected, show it
+                    if (currentShopData.deliveryPartnerId && currentShopData.deliveryMethod === 'partner') {
+                        selectedPartnerInfo.style.display = 'flex';
+                        partnerNameDisplay.textContent = currentShopData.deliveryPartnerName;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading delivery partners:', error);
+                    deliveryPartnersList.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i> Error loading delivery services
+                        </div>
+                    `;
+                });
+        }
+
+        // Edit delivery service
+        function editDeliveryService(serviceId) {
+            db.collection('shops').doc(currentShopId)
+                .collection('deliveryServices').doc(serviceId)
+                .get()
+                .then(doc => {
+                    if (doc.exists) {
+                        const service = doc.data();
+
+                        // Set form fields
+                        deliveryServiceModalTitle.textContent = 'Edit Delivery Service';
+                        editDeliveryServiceId.value = serviceId;
+                        deliveryServiceName.value = service.name || '';
+                        deliveryServicePhone.value = service.phone || '';
+                        deliveryServicePrice.value = service.price || '';
+                        deliveryServiceTime.value = service.time || '';
+                        deliveryServiceFrom.value = service.from || '';
+                        deliveryServiceTo.value = service.to || '';
+                        deliveryServiceDetails.value = service.details || '';
+
+                        // Show delete button
+                        deleteDeliveryServiceBtn.style.display = 'block';
+
+                        // Show modal
+                        deliveryServiceModal.show();
+                    }
+                });
+        }
+
+        // Delete delivery service
+        function deleteDeliveryService(serviceId) {
+            if (confirm('Are you sure you want to delete this delivery service?')) {
+                db.collection('shops').doc(currentShopId)
+                    .collection('deliveryServices').doc(serviceId)
+                    .delete()
+                    .then(() => {
+                        showToast('Delivery service deleted', 'success');
+                        loadAdminDeliveryServices();
+                    })
+                    .catch(error => {
+                        showToast('Error deleting delivery service: ' + error.message, 'error');
+                    });
+            }
+        }
+
+        // Upload image to ImgBB
+        async function uploadImageToImgBB(file) {
+            try {
+                // First compress the image
+                const compressedImage = await compressImage(file);
+
+                // Convert base64 to blob for upload
+                const blob = dataURLtoBlob(compressedImage);
+
+                const formData = new FormData();
+                formData.append('image', blob);
+                formData.append('key', IMGBB_API_KEY);
+
+                const response = await fetch('https://api.imgbb.com/1/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    return data.data.url;
+                } else {
+                    throw new Error('Upload failed');
+                }
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                throw error;
+            }
+        }
+
+        // Compress image
+        function compressImage(file, maxWidth = 800, maxHeight = 800, targetSizeMB = 1) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        // Calculate new dimensions while maintaining aspect ratio
+                        if (width > height) {
+                            if (width > maxWidth) {
+                                height *= maxWidth / width;
+                                width = maxWidth;
+                            }
+                        } else {
+                            if (height > maxHeight) {
+                                width *= maxHeight / height;
+                                height = maxHeight;
+                            }
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        // Start with high quality and reduce until under target size
+                        let quality = 0.9;
+                        let blob = null;
+
+                        // Function to try compression
+                        const tryCompression = () => {
+                            canvas.toBlob((resultBlob) => {
+                                blob = resultBlob;
+                                if (blob.size / (1024*1024) > targetSizeMB && quality > 0.1) {
+                                    // Reduce quality and try again
+                                    quality -= 0.1;
+                                    canvas.toBlob(tryCompression, 'image/jpeg', quality);
+                                } else {
+                                    // We're either under target size or at minimum quality
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                        resolve(reader.result);
+                                    };
+                                    reader.readAsDataURL(blob);
+                                }
+                            }, 'image/jpeg', quality);
+                        };
+
+                        // Start compression process
+                        tryCompression();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        // Convert data URL to blob
+        function dataURLtoBlob(dataURL) {
+            const arr = dataURL.split(',');
+            const mime = arr[0].match(/:(.*?);/)[1];
+            const bstr = atob(arr[1]);
+            let n = bstr.length;
+            const u8arr = new Uint8Array(n);
+
+            while (n--) {
+                u8arr[n] = bstr.charCodeAt(n);
+            }
+
+            return new Blob([u8arr], { type: mime });
+        }
+    </script>
+</body>
+</html>
