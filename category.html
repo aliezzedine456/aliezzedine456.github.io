@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Category Shops</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #002f34;
+            --secondary-color: #23e5db;
+            --accent-color: #ffce32;
+            --light-color: #f2f4f5;
+            --dark-color: #002f34;
+            --success-color: #00a650;
+            --warning-color: #ff6b6b;
+            --bg-color: #f2f4f5;
+            --text-color: #002f34;
+            --card-bg: white;
+            --input-bg: white;
+        }
+        .favorite-btn {
+            position: absolute;
+            bottom: 60px;
+            right: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border: none;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        .favorite-btn.active {
+            color: red;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding-bottom: 20px;
+        }
+
+        .shop-card {
+            background-color: var(--card-bg);
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+            overflow: hidden;
+            border: none;
+            cursor: pointer;
+            color: var(--text-color);
+            position: relative;
+        }
+
+        .shop-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .shop-card.premium {
+            border-left: 4px solid var(--accent-color);
+        }
+
+        .shop-img {
+            height: 150px;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--accent-color);
+            color: var(--dark-color);
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            font-weight: 500;
+        }
+
+        .delivery-badge {
+            position: absolute;
+            top: 10px;
+            font-weight: bold;
+            right: 10px;
+            background-color: var(--success-color);
+            color: white;
+            padding: 4.5px 5px;
+            border-radius: 4px;
+            font-size: 0.6rem;
+            
+        }
+
+        .section-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin: 15px 0;
+            color: var(--text-color);
+        }
+/* Search styles */
+.search-container {
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+#shopSearch {
+    transition: all 0.3s ease;
+    border-left: none;
+}
+
+#shopSearch:focus {
+    box-shadow: 0 0 0 0.25rem rgba(35, 229, 219, 0.25);
+    border-color: var(--secondary-color);
+}
+
+.input-group-text {
+    transition: all 0.3s ease;
+}
+
+#shopSearch:focus + .input-group-text {
+    border-color: var(--secondary-color);
+    background-color: var(--secondary-color);
+    color: white;
+}
+
+/* Search animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.search-result-item {
+    animation: fadeIn 0.3s ease forwards;
+}
+
+/* No results message */
+.no-results {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-color);
+    opacity: 0.7;
+}
+
+.no-results i {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    display: block;
+}
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            color: var(--primary-color);
+            text-decoration: none;
+            margin-bottom: 15px;
+            font-weight: 500;
+        }
+
+        .back-btn i {
+            margin-right: 8px;
+        }
+
+        /* Premium shops slider */
+        .premium-slider {
+            position: relative;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
+
+        .premium-slider-container {
+            display: flex;
+            transition: transform 0.5s ease;
+            padding-bottom: 10px;
+        }
+
+        .premium-slide {
+            flex: 0 0 100%;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+        .premium-indicator {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: var(--accent-color);
+            color: var(--dark-color);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            z-index: 1;
+        }
+
+        .regular-shops {
+            margin-top: 20px;
+        }
+
+        /* Skeleton loader */
+        .skeleton-loader {
+            position: relative;
+            overflow: hidden;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+        }
+
+        .skeleton-loader::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0) 0%, 
+                rgba(255,255,255,0.3) 50%, 
+                rgba(255,255,255,0) 100%);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(100%);
+            }
+        }
+
+        .skeleton-card {
+            height: 250px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+        }
+
+        .skeleton-image {
+            height: 150px;
+            width: 100%;
+            background-color: #d0d0d0;
+            border-radius: 8px 8px 0 0;
+        }
+
+        .skeleton-content {
+            padding: 15px;
+        }
+
+        .skeleton-text {
+            height: 12px;
+            width: 80%;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            background-color: #d0d0d0;
+        }
+
+        .skeleton-text.short {
+            width: 50%;
+        }
+
+        /* Hidden section */
+        .hidden-section {
+            display: none;
+        }
+
+        /* Responsive adjustments */
+        @media (min-width: 576px) {
+            .premium-slide {
+                flex: 0 0 50%;
+            }
+        }
+
+        @media (min-width: 768px) {
+            .premium-slide {
+                flex: 0 0 33.333%;
+            }
+        }
+
+        @media (min-width: 992px) {
+            .premium-slide {
+                flex: 0 0 25%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark mb-3" style="background-color: var(--primary-color);">
+        <div class="container">
+            <a class="navbar-brand" href="index.html">
+                <i class="fas fa-store me-2"></i>Shop Management
+            </a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Back button -->
+        <a href="index.html" class="back-btn" id="backBtn">
+            <i class="fas fa-arrow-left"></i> Back to Categories
+        </a>
+
+        <!-- Category title -->
+        <h2 id="categoryTitle" class="mb-4">Loading...</h2>
+
+        <!-- Add this below the category title -->
+<div class="search-container mb-4">
+    <div class="input-group">
+        <span class="input-group-text bg-white">
+            <i class="fas fa-search"></i>
+        </span>
+        <input type="text" id="shopSearch" class="form-control" placeholder="Search shops..." aria-label="Search shops">
+        <button class="btn btn-outline-secondary" type="button" id="clearSearch" style="display: none;">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+    <div id="searchResultsInfo" class="mt-2 text-muted small" style="display: none;"></div>
+</div>
+
+        <!-- Premium shops slider - Wrapped in a div with id for show/hide control -->
+        <div id="premiumShopsSection" class="premium-shops hidden-section">
+            <h4 class="section-title">Premium Shops</h4>
+            <div class="premium-slider">
+                <div class="premium-slider-container" id="premiumSliderContainer">
+                    <!-- Skeleton loaders -->
+                    <div class="premium-slide">
+                        <div class="skeleton-loader skeleton-card">
+                            <div class="skeleton-image"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-text"></div>
+                                <div class="skeleton-text short"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="premium-slide">
+                        <div class="skeleton-loader skeleton-card">
+                            <div class="skeleton-image"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-text"></div>
+                                <div class="skeleton-text short"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="premium-slide">
+                        <div class="skeleton-loader skeleton-card">
+                            <div class="skeleton-image"></div>
+                            <div class="skeleton-content">
+                                <div class="skeleton-text"></div>
+                                <div class="skeleton-text short"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Regular shops -->
+        <div class="regular-shops">
+            <h4 class="section-title">All Shops</h4>
+            <div class="row g-3" id="regularShopsContainer">
+                <!-- Skeleton loaders -->
+                <div class="col-md-4 col-6">
+                    <div class="skeleton-loader skeleton-card">
+                        <div class="skeleton-image"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text short"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-6">
+                    <div class="skeleton-loader skeleton-card">
+                        <div class="skeleton-image"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text short"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 col-6">
+                    <div class="skeleton-loader skeleton-card">
+                        <div class="skeleton-image"></div>
+                        <div class="skeleton-content">
+                            <div class="skeleton-text"></div>
+                            <div class="skeleton-text short"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyC87bXSNeIQ3Cno4wQAO4COy9fx_VZRNY4",
+            authDomain: "my-free-storage-test.firebaseapp.com",
+            databaseURL: "https://my-free-storage-test-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "my-free-storage-test",
+            storageBucket: "my-free-storage-test.firebasestorage.app",
+            messagingSenderId: "804356355407",
+            appId: "1:804356355407:web:e29bc41cc36d92712cc13a",
+            measurementId: "G-G7EP7DZEKS"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+
+        // Get category from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const category = urlParams.get('cat');
+        
+        // DOM elements
+        const categoryTitle = document.getElementById('categoryTitle');
+        const premiumSliderContainer = document.getElementById('premiumSliderContainer');
+        const premiumShopsSection = document.getElementById('premiumShopsSection');
+        const regularShopsContainer = document.getElementById('regularShopsContainer');
+        const backBtn = document.getElementById('backBtn');
+
+        // Global variables
+        let currentUser = null;
+        let currentUserData = null;
+        
+        // Slider variables
+        let currentSlide = 0;
+        let slideInterval;
+        let premiumShops = [];
+        let regularShops = [];
+
+        // Format category name
+        function formatCategoryName(category) {
+            if (!category) return '';
+            return category.charAt(0).toUpperCase() + category.slice(1) + ' Shops';
+        }
+
+        // Load shops for the category
+        function loadShops() {
+            if (!category) {
+                categoryTitle.textContent = 'Category not specified';
+                return;
+            }
+
+            // Set category title
+            categoryTitle.textContent = formatCategoryName(category);
+
+            // Load premium shops
+            db.collection('shops')
+                .where('isPublic', '==', true)
+                .where('category', '==', formatCategoryName(category).replace(' Shops', ''))
+                .where('isPremium', '==', true)
+                .orderBy('createdAt', 'desc')
+                .get()
+                .then(snapshot => {
+                    premiumShops = [];
+                    snapshot.forEach(doc => {
+                        const shop = doc.data();
+                        shop.id = doc.id;
+                        premiumShops.push(shop);
+                    });
+
+                    displayPremiumShops();
+                    startSlider();
+                })
+                .catch(error => {
+                    console.error('Error loading premium shops:', error);
+                    premiumSliderContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Error loading premium shops
+                        </div>
+                    `;
+                });
+
+            // Load regular shops (including premium shops to show in "All Shops" section)
+            db.collection('shops')
+                .where('isPublic', '==', true)
+                .where('category', '==', formatCategoryName(category).replace(' Shops', ''))
+                .orderBy('createdAt', 'desc')
+                .get()
+                .then(snapshot => {
+                    regularShops = [];
+                    snapshot.forEach(doc => {
+                        const shop = doc.data();
+                        shop.id = doc.id;
+                        regularShops.push(shop);
+                    });
+
+                    displayRegularShops();
+                })
+                .catch(error => {
+                    console.error('Error loading regular shops:', error);
+                    regularShopsContainer.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>Error loading shops
+                        </div>
+                    `;
+                });
+        }
+
+        // Display premium shops in slider
+        function displayPremiumShops() {
+            premiumSliderContainer.innerHTML = '';
+
+            if (premiumShops.length === 0) {
+                premiumShopsSection.classList.add('hidden-section');
+                return;
+            }
+
+            premiumShopsSection.classList.remove('hidden-section');
+
+            premiumShops.forEach(shop => {
+                const slide = document.createElement('div');
+                slide.className = 'premium-slide';
+                
+                const card = document.createElement('div');
+                card.className = `shop-card ${shop.isPremium ? 'premium' : ''}`;
+                card.onclick = () => showShopDetails(shop);
+
+                card.innerHTML = `
+                    ${shop.isPremium ? '<div class="premium-badge"><i class="fas fa-crown me-1"></i>Premium</div>' : ''}
+                    ${shop.hasDelivery ? '<div class="delivery-badge"><i class="fas fa-truck me-1"></i>Delivery</div>' : ''}
+                    <button class="favorite-btn" data-shop-id="${shop.id}">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <div class="shop-img" style="background-image: url('${shop.imageUrl}'); background-size: cover; background-position: center;"></div>
+                    <div class="p-3">
+                        <h6>${shop.name}</h6>
+                        <p class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i>${shop.location}</p>
+                    </div>
+                `;
+
+                // Handle favorite button
+                const favoriteBtn = card.querySelector('.favorite-btn');
+                if (currentUser && currentUserData && currentUserData.favoriteShops && currentUserData.favoriteShops.includes(shop.id)) {
+                    favoriteBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+                    favoriteBtn.classList.add('active');
+                }
+
+                favoriteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleFavoriteShop(shop.id, favoriteBtn);
+                });
+
+                slide.appendChild(card);
+                premiumSliderContainer.appendChild(slide);
+            });
+
+            // Initialize to show first slide
+            goToSlide(0);
+        }
+
+        // Display all shops (both regular and premium) in grid
+        function displayRegularShops() {
+            regularShopsContainer.innerHTML = '';
+
+            if (regularShops.length === 0) {
+                regularShopsContainer.innerHTML = `
+                    <div class="col-12">
+                        <div class="alert alert-info text-center py-4">
+                            <i class="fas fa-info-circle me-2"></i>No shops found in this category
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            regularShops.forEach(shop => {
+                const col = document.createElement('div');
+                col.className = 'col-md-4 col-6';
+                
+                const card = document.createElement('div');
+                card.className = `shop-card ${shop.isPremium ? 'premium' : ''}`;
+                card.onclick = () => showShopDetails(shop);
+
+                card.innerHTML = `
+                    ${shop.isPremium ? '<div class="premium-badge"><i class="fas fa-crown me-1"></i>Premium</div>' : ''}
+                    ${shop.hasDelivery ? '<div class="delivery-badge"><i class="fas fa-truck me-1"></i>Delivery</div>' : ''}
+                    <button class="favorite-btn" data-shop-id="${shop.id}">
+                        <i class="far fa-heart"></i>
+                    </button>
+                    <div class="shop-img" style="background-image: url('${shop.imageUrl}'); background-size: cover; background-position: center;"></div>
+                    <div class="p-3">
+                        <h6>${shop.name}</h6>
+                        <p class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i>${shop.location}</p>
+                    </div>
+                `;
+
+                // Handle favorite button
+                const favoriteBtn = card.querySelector('.favorite-btn');
+                if (currentUser && currentUserData && currentUserData.favoriteShops && currentUserData.favoriteShops.includes(shop.id)) {
+                    favoriteBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+                    favoriteBtn.classList.add('active');
+                }
+
+                favoriteBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    toggleFavoriteShop(shop.id, favoriteBtn);
+                });
+
+                col.appendChild(card);
+                regularShopsContainer.appendChild(col);
+            });
+        }
+
+        // Check authentication state
+         function checkAuthState() {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    currentUser = user;
+                    
+                    // Load user data from database
+                    db.collection('users').doc(user.uid).get()
+                        .then(doc => {
+                            currentUserData = doc.exists ? doc.data() : {};
+                            
+                            // Initialize favoriteShops array if it doesn't exist
+                            if (!currentUserData.favoriteShops) {
+                                currentUserData.favoriteShops = [];
+                            }
+                            
+                            // Refresh the shop displays to update favorite status
+                            displayPremiumShops();
+                            displayRegularShops();
+                        });
+                } else {
+                    currentUser = null;
+                    currentUserData = null;
+                }
+            });
+        } 
+
+        // Toggle favorite shop
+       // Replace the existing toggleFavoriteShop function with this optimized version
+function toggleFavoriteShop(shopId, button) {
+    if (!currentUser) {
+        alert('Please sign in to add shops to favorites');
+        return;
+    }
+    
+    // Immediately update the UI
+    const isFavorite = button.classList.contains('active');
+    if (isFavorite) {
+        button.innerHTML = '<i class="far fa-heart"></i>';
+        button.classList.remove('active');
+    } else {
+        button.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+        button.classList.add('active');
+    }
+    
+    const userRef = db.collection('users').doc(currentUser.uid);
+    
+    if (isFavorite) {
+        // Remove from favorites (firebase update happens after UI change)
+        userRef.update({
+            favoriteShops: firebase.firestore.FieldValue.arrayRemove(shopId)
+        }).catch(error => {
+            // If there's an error, revert the UI change
+            console.error("Error removing favorite:", error);
+            button.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+            button.classList.add('active');
+        });
+    } else {
+        // Add to favorites (firebase update happens after UI change)
+        userRef.set({
+            favoriteShops: firebase.firestore.FieldValue.arrayUnion(shopId)
+        }, { merge: true }).catch(error => {
+            // If there's an error, revert the UI change
+            console.error("Error adding favorite:", error);
+            button.innerHTML = '<i class="far fa-heart"></i>';
+            button.classList.remove('active');
+        });
+    }
+}
+        // Show shop details
+        function showShopDetails(shop) {
+            // Create modal content
+            const modalContent = `
+                <div class="modal-header">
+                    <h5 class="modal-title">${shop.name}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div style="background-image: url('${shop.imageUrl}'); height: 200px; background-size: cover; background-position: center; border-radius: 8px; margin-bottom: 15px;"></div>
+                    <div class="mb-3">
+                        <h6>Shop Details</h6>
+                        <p><i class="fas fa-info-circle me-2"></i> ${shop.description || 'No description available'}</p>
+                        <p><i class="fas fa-map-marker-alt me-2"></i> Location: ${shop.location}</p>
+                        ${shop.phone ? `<p><i class="fas fa-phone me-2"></i> Phone: ${shop.phone}</p>` : ''}
+                        ${shop.email ? `<p><i class="fas fa-envelope me-2"></i> Email: ${shop.email}</p>` : ''}
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary" id="enterShopBtn" data-id="${shop.id}">
+                        <i class="fas fa-store me-2"></i> Enter Shop
+                    </button>
+                </div>
+            `;
+            
+            // Create modal dynamically
+            const modalDiv = document.createElement('div');
+            modalDiv.className = 'modal fade';
+            modalDiv.id = 'shopDetailsModal';
+            modalDiv.tabIndex = '-1';
+            modalDiv.innerHTML = `
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        ${modalContent}
+                    </div>
+                </div>
+            `;
+            
+            // Add modal to body
+            document.body.appendChild(modalDiv);
+            
+            // Initialize modal
+            const modal = new bootstrap.Modal(modalDiv);
+            modal.show();
+            
+            // Add event listener for enter shop button
+            document.getElementById('enterShopBtn').addEventListener('click', () => {
+                window.location.href = `${shop.id}.html`;
+            });
+            
+            // Remove modal when hidden
+            modalDiv.addEventListener('hidden.bs.modal', () => {
+                document.body.removeChild(modalDiv);
+            });
+        }
+
+        // Get number of slides per view based on screen size
+        function getSlidesPerView() {
+            if (window.innerWidth >= 992) return 4;
+            if (window.innerWidth >= 768) return 3;
+            if (window.innerWidth >= 576) return 2;
+            return 1;
+        }
+
+        // Go to specific slide
+        function goToSlide(index) {
+            const slidesPerView = getSlidesPerView();
+            const slideWidth = 100 / slidesPerView;
+            
+            currentSlide = index;
+            premiumSliderContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+        }
+
+        // Next slide
+        function nextSlide() {
+            const slidesPerView = getSlidesPerView();
+            const totalSlides = Math.ceil(premiumShops.length / slidesPerView);
+            
+            currentSlide = (currentSlide + 1) % totalSlides;
+            goToSlide(currentSlide);
+        }
+
+        // Previous slide
+        function prevSlide() {
+            const slidesPerView = getSlidesPerView();
+            const totalSlides = Math.ceil(premiumShops.length / slidesPerView);
+            
+            currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+            goToSlide(currentSlide);
+        }
+
+        // Start auto-sliding
+        function startSlider() {
+            clearInterval(slideInterval);
+            
+            if (premiumShops.length <= getSlidesPerView()) return;
+            
+            slideInterval = setInterval(() => {
+                nextSlide();
+            }, 3000); // 3 seconds interval
+        }
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            goToSlide(0);
+        });
+function setupSearch() {
+    const searchInput = document.getElementById('shopSearch');
+    const clearSearchBtn = document.getElementById('clearSearch');
+    const searchResultsInfo = document.getElementById('searchResultsInfo');
+    
+    // Debounce search function to limit API calls
+    let searchTimeout;
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(() => {
+            performSearch(e.target.value.trim());
+        }, 300);
+    });
+    
+    // Clear search button
+    clearSearchBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        performSearch('');
+        clearSearchBtn.style.display = 'none';
+        searchResultsInfo.style.display = 'none';
+    });
+    
+    // Show/hide clear button based on input
+    searchInput.addEventListener('input', (e) => {
+        clearSearchBtn.style.display = e.target.value ? 'block' : 'none';
+    });
+}
+
+// Perform search across all shops
+function performSearch(query) {
+    const searchResultsInfo = document.getElementById('searchResultsInfo');
+    
+    if (!query) {
+        // If search is empty, show all shops
+        displayPremiumShops();
+        displayRegularShops();
+        searchResultsInfo.style.display = 'none';
+        return;
+    }
+    
+    const lowerQuery = query.toLowerCase();
+    
+    // Filter premium shops
+    const filteredPremium = premiumShops.filter(shop => 
+        shop.name.toLowerCase().includes(lowerQuery) || 
+        (shop.description && shop.description.toLowerCase().includes(lowerQuery)) ||
+        shop.location.toLowerCase().includes(lowerQuery)
+    );
+    
+    // Filter regular shops
+    const filteredRegular = regularShops.filter(shop => 
+        shop.name.toLowerCase().includes(lowerQuery) || 
+        (shop.description && shop.description.toLowerCase().includes(lowerQuery)) ||
+        shop.location.toLowerCase().includes(lowerQuery)
+    );
+    
+    // Display filtered results
+    displayFilteredShops(filteredPremium, filteredRegular);
+    
+    // Show search results info
+    const totalResults = filteredPremium.length + filteredRegular.length;
+    searchResultsInfo.textContent = `Found ${totalResults} results for "${query}"`;
+    searchResultsInfo.style.display = 'block';
+}
+// Display filtered shops
+function displayFilteredShops(filteredPremium, filteredRegular) {
+    // Display filtered premium shops
+    if (filteredPremium.length > 0) {
+        premiumShopsSection.classList.remove('hidden-section');
+        premiumSliderContainer.innerHTML = '';
+        
+        filteredPremium.forEach((shop, index) => {
+            const slide = document.createElement('div');
+            slide.className = 'premium-slide search-result-item';
+            slide.style.animationDelay = `${index * 0.1}s`;
+            
+            const card = createShopCard(shop);
+            slide.appendChild(card);
+            premiumSliderContainer.appendChild(slide);
+        });
+        
+        // Reset slider
+        currentSlide = 0;
+        goToSlide(0);
+        startSlider();
+    } else {
+        premiumShopsSection.classList.add('hidden-section');
+    }
+    
+    // Display filtered regular shops
+    regularShopsContainer.innerHTML = '';
+    
+    if (filteredRegular.length > 0) {
+        filteredRegular.forEach((shop, index) => {
+            const col = document.createElement('div');
+            col.className = 'col-md-4 col-6 search-result-item';
+            col.style.animationDelay = `${index * 0.1}s`;  // Fixed: Changed single quote to backtick
+            
+            const card = createShopCard(shop);
+            col.appendChild(card);
+            regularShopsContainer.appendChild(col);
+        });
+    } else {
+        // Show "no results" message if both premium and regular shops are empty
+        if (filteredPremium.length === 0) {
+            regularShopsContainer.innerHTML = `
+                <div class="col-12 no-results">
+                    <i class="fas fa-search"></i>
+                    <h5>No shops found</h5>
+                    <p>Try different search terms</p>
+                </div>
+            `;
+        }
+    }
+}
+
+function createShopCard(shop) {
+    const card = document.createElement('div');
+    card.className = `shop-card ${shop.isPremium ? 'premium' : ''}`;
+    card.onclick = () => showShopDetails(shop);
+
+    card.innerHTML = `
+        ${shop.isPremium ? '<div class="premium-badge"><i class="fas fa-crown me-1"></i>Premium</div>' : ''}
+        ${shop.hasDelivery ? '<div class="delivery-badge"><i class="fas fa-truck me-1"></i>Delivery</div>' : ''}
+        <button class="favorite-btn" data-shop-id="${shop.id}">
+            <i class="far fa-heart"></i>
+        </button>
+        <div class="shop-img" style="background-image: url('${shop.imageUrl}'); background-size: cover; background-position: center;"></div>
+        <div class="p-3">
+            <h6>${shop.name}</h6>
+            <p class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i>${shop.location}</p>
+        </div>
+    `;
+
+    // Handle favorite button
+    const favoriteBtn = card.querySelector('.favorite-btn');
+    if (currentUser && currentUserData && currentUserData.favoriteShops && currentUserData.favoriteShops.includes(shop.id)) {
+        favoriteBtn.innerHTML = '<i class="fas fa-heart" style="color: red;"></i>';
+        favoriteBtn.classList.add('active');
+    }
+
+    favoriteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleFavoriteShop(shop.id, favoriteBtn);
+    });
+
+    return card;
+}
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthState();
+            loadShops();
+            setupSearch(); 
+            
+            // Pause slider on hover
+            premiumSliderContainer.addEventListener('mouseenter', () => {
+                clearInterval(slideInterval);
+            });
+            
+            premiumSliderContainer.addEventListener('mouseleave', () => {
+                startSlider();
+            });
+            
+            // Enable touch/swipe for slider
+            let touchStartX = 0;
+            let touchEndX = 0;
+            
+            premiumSliderContainer.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            }, false);
+            
+            premiumSliderContainer.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            }, false);
+            
+            function handleSwipe() {
+                if (touchEndX < touchStartX - 50) {
+                    nextSlide(); // Swipe left
+                }
+                
+                if (touchEndX > touchStartX + 50) {
+                    prevSlide(); // Swipe right
+                }
+            }
+        });
+    </script>
+</body>
+</html>
