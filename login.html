@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sawiyan Shops</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Firebase App and Auth SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <style>
+        :root {
+            --primary-color: #002f34;
+            --secondary-color: #23e5db;
+            --accent-color: #ffce32;
+            --light-color: #f2f4f5;
+            --dark-color: #002f34;
+            --success-color: #00a650;
+            --warning-color: #ff6b6b;
+            --bg-color: #f2f4f5;
+            --text-color: #002f34;
+            --card-bg: white;
+            --input-bg: white;
+        }
+        
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding: 0;
+            margin: 0;
+            transition: background-color 0.3s, color 0.3s;
+            background-image: linear-gradient(135deg, rgba(35, 229, 219, 0.1) 0%, rgba(255, 206, 50, 0.1) 100%);
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            margin: 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .header h1 i {
+            margin-right: 10px;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-container {
+            max-width: 1200px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: all 0.5s ease;
+            transform: translateY(0);
+            opacity: 1;
+            animation: fadeInUp 0.8s ease-out;
+            border: none;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .auth-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+            animation: shine 6s infinite linear;
+        }
+
+        @keyframes shine {
+            0% { transform: rotate(30deg) translate(-30%, -30%); }
+            100% { transform: rotate(30deg) translate(30%, 30%); }
+        }
+
+        .auth-header h2 {
+            margin: 0;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            position: relative;
+        }
+
+        .auth-header h2 i {
+            margin-right: 10px;
+            font-size: 1.8rem;
+        }
+
+        .auth-body {
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: var(--text-color);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 12px;
+            background-color: var(--input-bg);
+            transition: all 0.3s;
+            box-sizing: border-box;
+        }
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(0, 47, 52, 0.1);
+            outline: none;
+        }
+
+        .btn-login {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 20px;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            background-color: #001a1d;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .auth-footer {
+            text-align: center;
+            margin-top: 30px;
+            color: var(--text-color);
+            opacity: 0.8;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .status-message {
+            margin-top: 20px;
+        }
+
+        /* Loading animation */
+        .loading-dots {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .loading-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--primary-color);
+            margin: 0 5px;
+            animation: loadingPulse 1.5s infinite ease-in-out;
+        }
+
+        .loading-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .loading-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .loading-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes loadingPulse {
+            0%, 100% {
+                transform: scale(0.8);
+                opacity: 0.5;
+            }
+            50% {
+                transform: scale(1.2);
+                opacity: 1;
+            }
+        }
+
+        /* Error message styling */
+        .alert-error {
+            background-color: #ffebee;
+            border-color: #ffcdd2;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .alert-error i {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        .form-links {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .form-links a {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-size: 14px;
+            margin: 0 10px;
+        }
+
+        .form-links a:hover {
+            text-decoration: underline;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .auth-card {
+                max-width: 90%;
+                border-radius: 12px;
+                margin: 20px;
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1) !important;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+            }
+            
+            .main-content {
+                padding: 20px;
+                background-color: var(--bg-color);
+            }
+            
+            .auth-header {
+                padding: 25px 15px;
+            }
+            
+            .auth-body {
+                padding: 30px 20px;
+            }
+            
+            .header h1 {
+                font-size: 1.3rem;
+            }
+            
+            .btn-login {
+                padding: 12px 16px;
+                font-size: 15px;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .auth-card {
+                max-width: calc(100% - 40px);
+                border-radius: 12px !important;
+                margin: 20px;
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1) !important;
+                border: 1px solid rgba(0, 0, 0, 0.1);
+            }
+            
+            .main-content {
+                padding: 0;
+                margin: 20px;
+                background-color: var(--bg-color);
+            }
+            
+            .auth-header {
+                padding: 20px 15px;
+            }
+            
+            .auth-body {
+                padding: 25px 20px;
+            }
+            
+            .btn-login {
+                font-size: 14px;
+                padding: 10px 14px;
+            }
+            
+            body {
+                background-color: var(--bg-color);
+            }
+        }
+
+        /* Animation for form elements */
+        .form-group {
+            animation: slideIn 0.6s ease-out 0.4s forwards;
+            opacity: 0;
+        }
+
+        .btn-login {
+            animation: slideIn 0.6s ease-out 0.6s forwards;
+            opacity: 0;
+        }
+
+        .auth-footer {
+            animation: fadeIn 0.6s ease-out 1s forwards;
+            opacity: 0;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+        
+        /* Logo animation */
+        .logo-icon {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-store logo-icon"></i> Sawiyan Shops System</h1>
+    </div>
+    
+    <div class="main-content">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h2><i class="fas fa-sign-in-alt"></i> Login</h2>
+                </div>
+                
+                <div class="auth-body">
+                    <form id="loginForm">
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" class="form-control" id="email" placeholder="Enter your email" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="password">Password</label>
+                            <input type="password" class="form-control" id="password" placeholder="Enter your password" required>
+                        </div>
+                        
+                        <button type="submit" class="btn-login">Sign In</button>
+                        
+                        <div class="form-links">
+                          
+                            <a href="signup.html" id="createAccount">Create Account</a>
+                        </div>
+                    </form>
+                    
+                    <div class="auth-footer">
+                        <p></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading indicator (initially hidden) -->
+    <div class="loading-dots" id="loadingIndicator" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1000;">
+        <div class="loading-dot"></div>
+        <div class="loading-dot"></div>
+        <div class="loading-dot"></div>
+    </div>
+    
+    <!-- Status message container -->
+    <div class="status-message" id="statusMessage" style="position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 1000; width: 90%; max-width: 400px;"></div>
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyC87bXSNeIQ3Cno4wQAO4COy9fx_VZRNY4",
+        authDomain: "my-free-storage-test.firebaseapp.com",
+        databaseURL: "https://my-free-storage-test-default-rtdb.europe-west1.firebasedatabase.app",
+        projectId: "my-free-storage-test",
+        storageBucket: "my-free-storage-test.appspot.com",
+        messagingSenderId: "804356355407",
+        appId: "1:804356355407:web:e29bc41cc36d92712cc13a",
+        measurementId: "G-G7EP7DZEKS"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    
+    // Show status message
+    function showStatus(message, type = 'info') {
+        const statusElement = document.getElementById('statusMessage');
+        
+        // Clear any existing messages
+        statusElement.innerHTML = '';
+        
+        // Create new message element
+        const messageDiv = document.createElement('div');
+        
+        if (type === 'error') {
+            messageDiv.innerHTML = `
+                <div class="alert-error">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div>${message}</div>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-info-circle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+        }
+        
+        statusElement.appendChild(messageDiv);
+        
+        // Auto-dismiss after 5 seconds (except for errors)
+        if (type !== 'error') {
+            setTimeout(() => {
+                const alert = statusElement.querySelector('.alert');
+                if (alert) {
+                    alert.classList.remove('show');
+                    setTimeout(() => {
+                        statusElement.innerHTML = '';
+                    }, 150);
+                }
+            }, 5000);
+        }
+    }
+
+function handleLogin(email, password) {
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    loadingIndicator.style.display = 'flex';
+    
+    // Sign in with Firebase Auth
+    firebase.auth().signInWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+            // Signed in successfully
+            const user = userCredential.user;
+            loadingIndicator.style.display = 'none';
+            showStatus("Login successful! Redirecting...", "success");
+            
+            // Store authentication state in localStorage
+            localStorage.setItem('userAuthenticated', 'true');
+            localStorage.setItem('userEmail', user.email);
+            
+            // Redirect to main app after successful login
+            setTimeout(() => {
+                window.location.href = "index.html";
+            }, 1500);
+        })
+        .catch((error) => {
+            loadingIndicator.style.display = 'none';
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            
+            console.log("Error code:", errorCode); // For debugging
+            
+            // Show user-friendly error messages
+            if (errorCode === 'auth/invalid-email') {
+                showStatus("Please enter a valid email address", "error");
+            } else if (errorCode === 'auth/user-disabled') {
+                showStatus("This account has been disabled. Please contact support.", "error");
+            } else if (errorCode === 'auth/user-not-found') {
+                showStatus("No account found with this email. Try signing up instead.", "error");
+            } else if (errorCode === 'auth/wrong-password') {
+                showStatus("Incorrect email or password. Please try again.", "error");
+            } else if (errorCode === 'auth/invalid-credential') {
+                showStatus("Incorrect email or password. Please try again.", "error");
+            } else if (errorCode === 'auth/invalid-login-credentials') {
+                showStatus("Incorrect email or password. Please try again.", "error");
+            } else {
+                showStatus("Login failed: " + errorMessage, "error");
+                console.error("Firebase auth error:", errorCode, errorMessage);
+            }
+        });
+}
+    // Handle password reset
+    function handlePasswordReset(email) {
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        loadingIndicator.style.display = 'flex';
+        
+        firebase.auth().sendPasswordResetEmail(email)
+            .then(() => {
+                loadingIndicator.style.display = 'none';
+                showStatus("Password reset email sent. Check your inbox.", "success");
+            })
+            .catch((error) => {
+                loadingIndicator.style.display = 'none';
+                const errorCode = error.code;
+                
+                if (errorCode === 'auth/user-not-found') {
+                    showStatus("No account found with this email address.", "error");
+                } else {
+                    showStatus("Error sending reset email. Please try again.", "error");
+                }
+            });
+    }
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+        const loginForm = document.getElementById('loginForm');
+        const forgotPasswordLink = document.getElementById('forgotPassword');
+        
+        // Check if user is already logged in
+        firebase.auth().onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in, redirect to main page
+                window.location.href = "index.html";
+            }
+        });
+        
+        // Login form submission
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // Basic validation
+            if (!email || !password) {
+                showStatus("Please fill in all fields", "error");
+                return;
+            }
+            
+            if (!email.includes('@')) {
+                showStatus("Please enter a valid email address", "error");
+                return;
+            }
+            
+            handleLogin(email, password);
+        });
+    
+        
+        // Add subtle pulse animation to auth card
+        setInterval(() => {
+            const authCard = document.querySelector('.auth-card');
+            if (authCard) {
+                authCard.style.boxShadow = '0 10px 30px rgba(0, 47, 52, 0.15)';
+                setTimeout(() => {
+                    authCard.style.boxShadow = '0 10px 30px rgba(0, 47, 52, 0.1)';
+                }, 1000);
+            }
+        }, 3000);
+    });
+</script>
+</body>
+</html>
